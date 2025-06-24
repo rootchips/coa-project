@@ -120,8 +120,9 @@ DecimalToBinary:
     call WriteString
     call ReadInt
     mov number, eax
+    mov ecx, eax
 
-    mov ecx, eax            ; use ECX to shift
+    ; Prepare binary string in reverse
     mov edi, OFFSET resultStr
     add edi, 8
     mov BYTE PTR [edi], 0
@@ -145,9 +146,9 @@ binaryLoop:
     call WriteDec
     mov edx, OFFSET suffixD
     call WriteString
-    mov edx, OFFSET suffixB
-    call WriteString
     mov edx, edi
+    call WriteString
+    mov edx, OFFSET suffixB
     call WriteString
     call CrLf
     call WaitMsg
