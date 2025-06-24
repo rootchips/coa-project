@@ -119,15 +119,16 @@ DecimalToBinary:
     mov edx, OFFSET askDecimal
     call WriteString
     call ReadInt
-    mov ecx, eax
     mov number, eax
 
+    mov ecx, eax            ; use ECX to shift
     mov edi, OFFSET resultStr
     add edi, 8
     mov BYTE PTR [edi], 0
     dec edi
-    mov eax, ecx
+
 binaryLoop:
+    mov eax, ecx
     and eax, 1
     add al, '0'
     mov [edi], al
