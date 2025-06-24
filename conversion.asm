@@ -31,9 +31,8 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdStr BYTE 64 DUP(0)
+bcdBinStr BYTE 64 DUP(0)
 number DWORD ?
-digitBinTable BYTE "0000",0,"0001",0,"0010",0,"0011",0,"0100",0,"0101",0,"0110",0,"0111",0,"1000",0,"1001",0
 
 .code
 main PROC
@@ -229,7 +228,7 @@ validateBinary3:
 bitLoop3:
     mov bl, [esi]
     cmp bl, 0
-    je convertBCD
+    je showBCD
     shl eax, 1
     cmp bl, '1'
     jne skipInc3
@@ -237,45 +236,45 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
-
-convertBCD:
+showBCD:
     mov number, eax
     mov ecx, number
-    mov edi, OFFSET bcdStr
+    mov edi, OFFSET bcdBinStr
 
-digitLoop:
-    xor edx, edx
+convertToBCD:
     mov eax, ecx
+    xor edx, edx
     mov ebx, 10
     div ebx
     push edx
     mov ecx, eax
     cmp ecx, 0
-    jne digitLoop
+    jne convertToBCD
 
-printBCD:
+bcdOutLoop:
     pop eax
-    movzx eax, al
-    shl eax, 3
-    mov edx, OFFSET digitBinTable
-    add edx, eax
+    mov bl, al
+    mov ecx, 4
+    shl eax, 4
+    mov esi, OFFSET resultStr + 4
+    mov edi, esi
+    dec edi
+bcdBinLoop:
+    mov al, bl
+    and al, 1
+    add al, '0'
+    mov [edi], al
+    dec edi
+    shr bl, 1
+    loop bcdBinLoop
+    inc edi
+    mov edx, edi
     call WriteString
     mov al, ' '
     call WriteChar
-    cmp esp, OFFSET bcdStr
-    ja printBCD
+    cmp esp, OFFSET bcdBinStr
+    jne bcdOutLoop
 
-    call CrLf
-    mov edx, OFFSET outputLabel4
-    call WriteString
-    mov edx, OFFSET binInput
-    call WriteString
-    mov edx, OFFSET suffixB
-    call WriteString
-    mov edx, OFFSET isLabel
-    call WriteString
-    mov edx, OFFSET bcdStr
-    call WriteString
     mov edx, OFFSET suffixBCD
     call WriteString
     call CrLf
