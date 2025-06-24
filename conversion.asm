@@ -31,7 +31,7 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdBinStr BYTE 64 DUP(0)
+bcdStr BYTE 64 DUP(0)
 number DWORD ?
 
 .code
@@ -228,7 +228,7 @@ validateBinary3:
 bitLoop3:
     mov bl, [esi]
     cmp bl, 0
-    je showBCD
+    je convertToBCD
     shl eax, 1
     cmp bl, '1'
     jne skipInc3
@@ -236,45 +236,83 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
-showBCD:
-    mov number, eax
-    mov ecx, number
-    mov edi, OFFSET bcdBinStr
 
 convertToBCD:
-    mov eax, ecx
+    mov number, eax
+    mov ecx, number
+    mov edi, OFFSET bcdStr
+    add edi, 63
+    mov BYTE PTR [edi], 0
+    dec edi
+
+digitToBCD:
     xor edx, edx
+    mov eax, ecx
     mov ebx, 10
     div ebx
-    push edx
     mov ecx, eax
-    cmp ecx, 0
-    jne convertToBCD
-
-bcdOutLoop:
-    pop eax
-    mov bl, al
-    mov ecx, 4
-    shl eax, 4
-    mov esi, OFFSET resultStr + 4
-    mov edi, esi
-    dec edi
-bcdBinLoop:
-    mov al, bl
-    and al, 1
+    mov al, dl
+    mov ah, 0
     add al, '0'
-    mov [edi], al
+    sub al, '0'
+    movzx eax, al
+    mov ebx, 4
+    mov esi, edi
+    add esi, -4
+    mov edi, esi
+    mov ecx, 4
+generateBits:
+    shl eax, 1
+    jc bitIs1
+    mov BYTE PTR [esi], '0'
+    jmp nextBit
+bitIs1:
+    mov BYTE PTR [esi], '1'
+nextBit:
+    inc esi
+    loop generateBits
     dec edi
-    shr bl, 1
-    loop bcdBinLoop
-    inc edi
-    mov edx, edi
+    cmp ecx, 0
+    jne digitToBCD
+
+outputBCD:
+    call CrLf
+    mov edx, OFFSET outputLabel4
     call WriteString
+    mov edx, OFFSET binInput
+    call WriteString
+    mov edx, OFFSET suffixB
+    call WriteString
+    mov edx, OFFSET isLabel
+    call WriteString
+    mov esi, edi
+    inc esi
+printLoop:
+    mov al, [esi]
+    cmp al, 0
+    je doneBCD
+    call WriteChar
+    inc esi
+    mov al, [esi]
+    cmp al, 0
+    je doneBCD
+    call WriteChar
+    inc esi
+    mov al, [esi]
+    cmp al, 0
+    je doneBCD
+    call WriteChar
+    inc esi
+    mov al, [esi]
+    cmp al, 0
+    je doneBCD
+    call WriteChar
     mov al, ' '
     call WriteChar
-    cmp esp, OFFSET bcdBinStr
-    jne bcdOutLoop
+    inc esi
+    jmp printLoop
 
+doneBCD:
     mov edx, OFFSET suffixBCD
     call WriteString
     call CrLf
