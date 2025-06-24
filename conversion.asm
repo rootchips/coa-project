@@ -23,9 +23,10 @@ outputLabel1 BYTE "The decimal integer of ", 0
 outputLabel2 BYTE "The binary of ", 0
 outputLabel3 BYTE "The hexadecimal of ", 0
 outputLabel4 BYTE "The BCD of ", 0
-suffixD BYTE "d is ", 0
+suffixD BYTE "d", 0
 suffixB BYTE "b", 0
 suffixH BYTE "h", 0
+isLabel BYTE " is ", 0
 
 binInput BYTE 9 DUP(0)
 resultStr BYTE 16 DUP(0)
@@ -103,6 +104,8 @@ showDecimal:
     call WriteString
     mov edx, OFFSET suffixB
     call WriteString
+    mov edx, OFFSET isLabel
+    call WriteString
     mov eax, number
     call WriteDec
     mov edx, OFFSET suffixD
@@ -142,9 +145,11 @@ binaryLoop:
     call WriteDec
     mov edx, OFFSET suffixD
     call WriteString
-    mov edx, OFFSET suffixB
+    mov edx, OFFSET isLabel
     call WriteString
     mov edx, edi
+    call WriteString
+    mov edx, OFFSET suffixB
     call WriteString
     call CrLf
     call CrLf
@@ -171,6 +176,7 @@ skipInc2:
     inc esi
     jmp bitLoop2
 showHex:
+    mov number, eax
     call CrLf
     mov edx, OFFSET outputLabel3
     call WriteString
@@ -178,6 +184,9 @@ showHex:
     call WriteString
     mov edx, OFFSET suffixB
     call WriteString
+    mov edx, OFFSET isLabel
+    call WriteString
+    mov eax, number
     call WriteHex
     mov edx, OFFSET suffixH
     call WriteString
@@ -213,6 +222,8 @@ showBCD:
     mov edx, OFFSET binInput
     call WriteString
     mov edx, OFFSET suffixB
+    call WriteString
+    mov edx, OFFSET isLabel
     call WriteString
     mov eax, number
     call WriteDec
