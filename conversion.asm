@@ -5,13 +5,13 @@
 INCLUDE Irvine32.inc
 
 .data
-menuLine BYTE "--------------------------------------------------", 0
 menuTitle BYTE ">>> Please select the conversion type:", 0
 menu1 BYTE "1. Binary to Decimal", 0
 menu2 BYTE "2. Decimal to Binary", 0
 menu3 BYTE "3. Binary to Hex", 0
 menu4 BYTE "4. Binary to BCD", 0
 menu5 BYTE "5. Exit", 0
+menuLine BYTE "--------------------------------------------------", 0
 askChoice BYTE "\nEnter your choice: ", 0
 askBinary BYTE "Please Enter 8-bit binary digits (e.g., 11110000): ", 0
 askDecimal BYTE "Please Enter a decimal integer less than 256: ", 0
