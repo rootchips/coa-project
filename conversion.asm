@@ -31,7 +31,8 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdStr BYTE 16 DUP(0)
+bcdStr BYTE 32 DUP(0)
+tempStr BYTE 16 DUP(0)
 number DWORD ?
 
 .code
@@ -59,10 +60,12 @@ menu:
     mov edx, OFFSET menuLine
     call WriteString
     call CrLf
+
     mov edx, OFFSET askChoice
     call WriteString
     call ReadInt
     mov ecx, eax
+
     cmp ecx, 1
     je BinaryToDecimal
     cmp ecx, 2
@@ -86,6 +89,7 @@ validateBinary1:
     cmp eax, 8
     jne validateBinary1
     mov binInput[eax], 0
+
     xor eax, eax
     mov esi, OFFSET binInput
 bitLoop1:
@@ -130,10 +134,12 @@ validateDecimal:
     jg validateDecimal
     mov number, eax
     mov ecx, eax
+
     mov edi, OFFSET resultStr
     add edi, 8
     mov BYTE PTR [edi], 0
     dec edi
+
 binaryLoop:
     mov eax, ecx
     and eax, 1
@@ -144,6 +150,7 @@ binaryLoop:
     cmp ecx, 0
     jne binaryLoop
     inc edi
+
     call CrLf
     mov edx, OFFSET outputLabel2
     call WriteString
@@ -172,6 +179,7 @@ validateBinary2:
     cmp eax, 8
     jne validateBinary2
     mov binInput[eax], 0
+
     xor eax, eax
     mov esi, OFFSET binInput
 bitLoop2:
@@ -215,38 +223,34 @@ validateBinary3:
     cmp eax, 8
     jne validateBinary3
     mov binInput[eax], 0
-    xor eax, eax
+
     mov esi, OFFSET binInput
-bitLoop3:
-    mov bl, [esi]
-    cmp bl, 0
-    je toDecimal
-    shl eax, 1
-    cmp bl, '1'
-    jne skipInc3
-    inc eax
-skipInc3:
-    inc esi
-    jmp bitLoop3
-toDecimal:
-    mov number, eax
-    mov ecx, number
     mov edi, OFFSET bcdStr
-    add edi, 16
-    mov BYTE PTR [edi], 0
-    dec edi
-bcdLoop:
-    xor edx, edx
-    mov eax, ecx
-    mov ebx, 10
-    div ebx
-    add dl, '0'
-    mov [edi], dl
-    dec edi
-    mov ecx, eax
-    cmp ecx, 0
-    jne bcdLoop
+    mov ecx, 0
+
+    mov al, [esi + ecx]
+    cmp al, 0
+    je bcdEnd
+
+groupLoop:
+    mov edx, 0
+    mov bl, [esi + ecx]
+    cmp bl, 0
+    je bcdEnd
+    mov [edi], bl
     inc edi
+    inc ecx
+    mov bl, cl
+    and bl, 11b
+    cmp bl, 0
+    jne skipSpace
+    mov BYTE PTR [edi], ' '
+    inc edi
+skipSpace:
+    jmp groupLoop
+
+bcdEnd:
+    mov BYTE PTR [edi], 0
     call CrLf
     mov edx, OFFSET outputLabel4
     call WriteString
@@ -256,7 +260,7 @@ bcdLoop:
     call WriteString
     mov edx, OFFSET isLabel
     call WriteString
-    mov edx, edi
+    mov edx, OFFSET bcdStr
     call WriteString
     mov edx, OFFSET suffixBCD
     call WriteString
