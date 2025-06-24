@@ -80,7 +80,9 @@ BinaryToDecimal:
     mov edx, OFFSET askBinary
     call WriteString
     mov edx, OFFSET binInput
+    mov ecx, 9
     call ReadString
+    mov binInput[eax], 0
 
     xor eax, eax
     mov esi, OFFSET binInput
@@ -160,7 +162,9 @@ BinaryToHex:
     mov edx, OFFSET askHex
     call WriteString
     mov edx, OFFSET binInput
+    mov ecx, 9
     call ReadString
+    mov binInput[eax], 0
 
     xor eax, eax
     mov esi, OFFSET binInput
@@ -199,7 +203,9 @@ BinaryToBCD:
     mov edx, OFFSET askBCD
     call WriteString
     mov edx, OFFSET binInput
+    mov ecx, 9
     call ReadString
+    mov binInput[eax], 0
 
     xor eax, eax
     mov esi, OFFSET binInput
