@@ -12,7 +12,7 @@ menu3 BYTE "3. Binary to Hex", 0
 menu4 BYTE "4. Binary to BCD", 0
 menu5 BYTE "5. Exit", 0
 menuLine BYTE "--------------------------------------------------", 0
-askChoice BYTE "\nEnter your choice: ", 0
+askChoice BYTE "Enter your choice: ", 0
 askBinary BYTE "Please Enter 8-bit binary digits (e.g., 11110000): ", 0
 askDecimal BYTE "Please Enter a decimal integer less than 256: ", 0
 askHex BYTE "Please Enter 8-bit binary digits for HEX conversion: ", 0
@@ -216,7 +216,7 @@ showBCD:
     call WriteString
     mov edx, OFFSET suffixB
     call WriteString
-    call WriteBCD
+    call WriteDec
     call CrLf
     call WaitMsg
     jmp menu
