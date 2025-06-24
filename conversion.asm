@@ -59,12 +59,10 @@ menu:
     mov edx, OFFSET menuLine
     call WriteString
     call CrLf
-
     mov edx, OFFSET askChoice
     call WriteString
     call ReadInt
     mov ecx, eax
-
     cmp ecx, 1
     je BinaryToDecimal
     cmp ecx, 2
@@ -88,7 +86,6 @@ validateBinary1:
     cmp eax, 8
     jne validateBinary1
     mov binInput[eax], 0
-
     xor eax, eax
     mov esi, OFFSET binInput
 bitLoop1:
@@ -133,12 +130,10 @@ validateDecimal:
     jg validateDecimal
     mov number, eax
     mov ecx, eax
-
     mov edi, OFFSET resultStr
     add edi, 8
     mov BYTE PTR [edi], 0
     dec edi
-
 binaryLoop:
     mov eax, ecx
     and eax, 1
@@ -149,7 +144,6 @@ binaryLoop:
     cmp ecx, 0
     jne binaryLoop
     inc edi
-
     call CrLf
     mov edx, OFFSET outputLabel2
     call WriteString
@@ -178,7 +172,6 @@ validateBinary2:
     cmp eax, 8
     jne validateBinary2
     mov binInput[eax], 0
-
     xor eax, eax
     mov esi, OFFSET binInput
 bitLoop2:
@@ -222,13 +215,12 @@ validateBinary3:
     cmp eax, 8
     jne validateBinary3
     mov binInput[eax], 0
-
     xor eax, eax
     mov esi, OFFSET binInput
 bitLoop3:
     mov bl, [esi]
     cmp bl, 0
-    je showBCD
+    je toDecimal
     shl eax, 1
     cmp bl, '1'
     jne skipInc3
@@ -236,38 +228,25 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
-
-showBCD:
+toDecimal:
     mov number, eax
     mov ecx, number
     mov edi, OFFSET bcdStr
-convertLoop:
-    mov eax, ecx
+    add edi, 16
+    mov BYTE PTR [edi], 0
+    dec edi
+bcdLoop:
     xor edx, edx
+    mov eax, ecx
     mov ebx, 10
     div ebx
     add dl, '0'
     mov [edi], dl
-    inc edi
+    dec edi
     mov ecx, eax
     cmp ecx, 0
-    jne convertLoop
-    mov [edi], 0
-
-    mov esi, OFFSET bcdStr
-    dec edi
-reverseLoop:
-    cmp esi, edi
-    jge doneReverse
-    mov al, [esi]
-    mov bl, [edi]
-    mov [esi], bl
-    mov [edi], al
-    inc esi
-    dec edi
-    jmp reverseLoop
-doneReverse:
-
+    jne bcdLoop
+    inc edi
     call CrLf
     mov edx, OFFSET outputLabel4
     call WriteString
@@ -277,35 +256,8 @@ doneReverse:
     call WriteString
     mov edx, OFFSET isLabel
     call WriteString
-
-    mov esi, OFFSET bcdStr
-printBCDLoop:
-    mov al, [esi]
-    cmp al, 0
-    je donePrintBCD
-    sub al, '0'
-    movzx ebx, al
-    mov ecx, 4
-    mov edi, OFFSET resultStr
-    add edi, 4
-    mov BYTE PTR [edi], 0
-    dec edi
-binDigitLoop:
-    mov eax, ebx
-    and eax, 1
-    add al, '0'
-    mov [edi], al
-    dec edi
-    shr ebx, 1
-    loop binDigitLoop
-    inc edi
     mov edx, edi
     call WriteString
-    mov al, ' '
-    call WriteChar
-    inc esi
-    jmp printBCDLoop
-donePrintBCD:
     mov edx, OFFSET suffixBCD
     call WriteString
     call CrLf
