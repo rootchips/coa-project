@@ -34,7 +34,6 @@ number DWORD ?
 .code
 main PROC
 menu:
-    call Clrscr
     mov edx, OFFSET menuLine
     call WriteString
     call CrLf
@@ -145,9 +144,9 @@ binaryLoop:
     call WriteDec
     mov edx, OFFSET suffixD
     call WriteString
-    mov edx, edi
-    call WriteString
     mov edx, OFFSET suffixB
+    call WriteString
+    mov edx, edi
     call WriteString
     call CrLf
     call WaitMsg
@@ -209,6 +208,7 @@ skipInc3:
     inc esi
     jmp bitLoop3
 showBCD:
+    mov number, eax
     call CrLf
     mov edx, OFFSET outputLabel4
     call WriteString
@@ -216,6 +216,7 @@ showBCD:
     call WriteString
     mov edx, OFFSET suffixB
     call WriteString
+    mov eax, number
     call WriteDec
     call CrLf
     call WaitMsg
