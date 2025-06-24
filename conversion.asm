@@ -31,7 +31,7 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdStr BYTE 32 DUP(0)
+bcdStr BYTE 16 DUP(0)
 number DWORD ?
 
 .code
@@ -238,30 +238,21 @@ skipInc3:
     jmp bitLoop3
 showBCD:
     mov number, eax
-    mov ecx, 100
+    mov ecx, number
     mov edi, OFFSET bcdStr
-printBCDGroup:
+
+bcdLoop:
+    mov eax, ecx
     xor edx, edx
-    div ecx
+    mov ebx, 10
+    div ebx
     add dl, '0'
+    dec edi
     mov [edi], dl
+    mov ecx, eax
+    cmp ecx, 0
+    jne bcdLoop
     inc edi
-    cmp ecx, 100
-    je setTen
-    cmp ecx, 10
-    je setOne
-    jmp printBCDGroupDone
-
-setTen:
-    mov ecx, 10
-    jmp printBCDGroup
-
-setOne:
-    mov ecx, 1
-    jmp printBCDGroup
-
-printBCDGroupDone:
-    mov BYTE PTR [edi], 0
 
     call CrLf
     mov edx, OFFSET outputLabel4
@@ -272,7 +263,7 @@ printBCDGroupDone:
     call WriteString
     mov edx, OFFSET isLabel
     call WriteString
-    mov edx, OFFSET bcdStr
+    mov edx, edi
     call WriteString
     mov edx, OFFSET suffixBCD
     call WriteString
