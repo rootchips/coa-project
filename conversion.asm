@@ -24,7 +24,7 @@ outputLabel2 BYTE "The binary of ", 0
 outputLabel3 BYTE "The hexadecimal of ", 0
 outputLabel4 BYTE "The BCD of ", 0
 suffixB BYTE "b is ", 0
-suffixD BYTE "d", 0
+suffixD BYTE "d is ", 0
 suffixH BYTE "h", 0
 
 binInput BYTE 9 DUP(0)
@@ -120,12 +120,12 @@ DecimalToBinary:
     call WriteString
     call ReadInt
     mov number, eax
-    mov ecx, eax
+    mov ecx, eax            ; use ecx for shifting
 
     ; Prepare binary string in reverse
     mov edi, OFFSET resultStr
     add edi, 8
-    mov BYTE PTR [edi], 0
+    mov BYTE PTR [edi], 0   ; null-terminator
     dec edi
 
 binaryLoop:
