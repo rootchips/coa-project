@@ -31,7 +31,7 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdStr BYTE 64 DUP(0)
+bcdStr BYTE 16 DUP(0)
 number DWORD ?
 
 .code
@@ -236,26 +236,38 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
+
 showBCD:
     mov number, eax
     mov ecx, number
     mov edi, OFFSET bcdStr
+convertLoop:
+    mov eax, ecx
+    xor edx, edx
+    mov ebx, 10
+    div ebx
+    add dl, '0'
+    mov [edi], dl
+    inc edi
+    mov ecx, eax
+    cmp ecx, 0
+    jne convertLoop
+    mov [edi], 0
+
     mov esi, OFFSET bcdStr
+    dec edi
+reverseLoop:
+    cmp esi, edi
+    jge doneReverse
+    mov al, [esi]
+    mov bl, [edi]
+    mov [esi], bl
+    mov [edi], al
+    inc esi
+    dec edi
+    jmp reverseLoop
+doneReverse:
 
-    ; Convert number to BCD digits
-    bcdConvert:
-        mov eax, ecx
-        xor edx, edx
-        mov ebx, 10
-        div ebx
-        add dl, '0'
-        mov [edi], dl
-        inc edi
-        mov ecx, eax
-        cmp ecx, 0
-        jne bcdConvert
-
-    ; Print labels
     call CrLf
     mov edx, OFFSET outputLabel4
     call WriteString
@@ -266,34 +278,34 @@ showBCD:
     mov edx, OFFSET isLabel
     call WriteString
 
-    ; Print each BCD digit in binary
-    dec edi
-printEachBCD:
-    movzx eax, byte ptr [edi]
-    sub eax, '0'
-    mov ebx, eax
+    mov esi, OFFSET bcdStr
+printBCDLoop:
+    mov al, [esi]
+    cmp al, 0
+    je donePrintBCD
+    sub al, '0'
+    movzx ebx, al
     mov ecx, 4
-    mov esi, OFFSET resultStr
-    add esi, 4
-    mov BYTE PTR [esi], 0
-    dec esi
-bcdBinLoop:
+    mov edi, OFFSET resultStr
+    add edi, 4
+    mov BYTE PTR [edi], 0
+    dec edi
+binDigitLoop:
     mov eax, ebx
     and eax, 1
     add al, '0'
-    mov [esi], al
-    dec esi
+    mov [edi], al
+    dec edi
     shr ebx, 1
-    loop bcdBinLoop
-    inc esi
-    mov edx, esi
+    loop binDigitLoop
+    inc edi
+    mov edx, edi
     call WriteString
     mov al, ' '
     call WriteChar
-    dec edi
-    cmp edi, OFFSET bcdStr
-    jae printEachBCD
-
+    inc esi
+    jmp printBCDLoop
+donePrintBCD:
     mov edx, OFFSET suffixBCD
     call WriteString
     call CrLf
