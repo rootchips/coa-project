@@ -34,8 +34,6 @@ number DWORD ?
 .code
 main PROC
 menu:
-    mov edx, OFFSET menuLine
-    call WriteString
     call CrLf
     mov edx, OFFSET menuTitle
     call WriteString
@@ -110,7 +108,7 @@ showDecimal:
     mov edx, OFFSET suffixD
     call WriteString
     call CrLf
-    call WaitMsg
+    call CrLf
     jmp menu
 
 DecimalToBinary:
@@ -149,7 +147,7 @@ binaryLoop:
     mov edx, edi
     call WriteString
     call CrLf
-    call WaitMsg
+    call CrLf
     jmp menu
 
 BinaryToHex:
@@ -184,7 +182,7 @@ showHex:
     mov edx, OFFSET suffixH
     call WriteString
     call CrLf
-    call WaitMsg
+    call CrLf
     jmp menu
 
 BinaryToBCD:
@@ -219,7 +217,7 @@ showBCD:
     mov eax, number
     call WriteDec
     call CrLf
-    call WaitMsg
+    call CrLf
     jmp menu
 
 ExitProgram:
