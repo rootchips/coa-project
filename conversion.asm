@@ -31,9 +31,9 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdStr BYTE 32 DUP(0)
-tempStr BYTE 16 DUP(0)
+bcdStr BYTE 64 DUP(0)
 number DWORD ?
+digitBinTable BYTE "0000",0,"0001",0,"0010",0,"0011",0,"0100",0,"0101",0,"0110",0,"0111",0,"1000",0,"1001",0
 
 .code
 main PROC
@@ -224,33 +224,47 @@ validateBinary3:
     jne validateBinary3
     mov binInput[eax], 0
 
+    xor eax, eax
     mov esi, OFFSET binInput
+bitLoop3:
+    mov bl, [esi]
+    cmp bl, 0
+    je convertBCD
+    shl eax, 1
+    cmp bl, '1'
+    jne skipInc3
+    inc eax
+skipInc3:
+    inc esi
+    jmp bitLoop3
+
+convertBCD:
+    mov number, eax
+    mov ecx, number
     mov edi, OFFSET bcdStr
-    mov ecx, 0
 
-    mov al, [esi + ecx]
-    cmp al, 0
-    je bcdEnd
+digitLoop:
+    xor edx, edx
+    mov eax, ecx
+    mov ebx, 10
+    div ebx
+    push edx
+    mov ecx, eax
+    cmp ecx, 0
+    jne digitLoop
 
-groupLoop:
-    mov edx, 0
-    mov bl, [esi + ecx]
-    cmp bl, 0
-    je bcdEnd
-    mov [edi], bl
-    inc edi
-    inc ecx
-    mov bl, cl
-    and bl, 11b
-    cmp bl, 0
-    jne skipSpace
-    mov BYTE PTR [edi], ' '
-    inc edi
-skipSpace:
-    jmp groupLoop
+printBCD:
+    pop eax
+    movzx eax, al
+    shl eax, 3
+    mov edx, OFFSET digitBinTable
+    add edx, eax
+    call WriteString
+    mov al, ' '
+    call WriteChar
+    cmp esp, OFFSET bcdStr
+    ja printBCD
 
-bcdEnd:
-    mov BYTE PTR [edi], 0
     call CrLf
     mov edx, OFFSET outputLabel4
     call WriteString
