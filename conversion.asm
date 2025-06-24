@@ -76,14 +76,16 @@ menu:
     jmp menu
 
 BinaryToDecimal:
+validateBinary1:
     call CrLf
     mov edx, OFFSET askBinary
     call WriteString
     mov edx, OFFSET binInput
     mov ecx, SIZEOF binInput
     call ReadString
-    mov ebx, eax
-    mov BYTE PTR [edx + ebx], 0
+    cmp eax, 8
+    jne validateBinary1
+    mov binInput[eax], 0
 
     xor eax, eax
     mov esi, OFFSET binInput
@@ -107,10 +109,9 @@ showDecimal:
     call WriteString
     mov edx, OFFSET suffixB
     call WriteString
-    mov eax, number
-    call WriteString
     mov edx, OFFSET isLabel
     call WriteString
+    mov eax, number
     call WriteDec
     mov edx, OFFSET suffixD
     call WriteString
@@ -119,10 +120,15 @@ showDecimal:
     jmp menu
 
 DecimalToBinary:
+validateDecimal:
     call CrLf
     mov edx, OFFSET askDecimal
     call WriteString
     call ReadInt
+    cmp eax, 0
+    jl validateDecimal
+    cmp eax, 255
+    jg validateDecimal
     mov number, eax
     mov ecx, eax
 
@@ -160,12 +166,15 @@ binaryLoop:
     jmp menu
 
 BinaryToHex:
+validateBinary2:
     call CrLf
     mov edx, OFFSET askHex
     call WriteString
     mov edx, OFFSET binInput
     mov ecx, SIZEOF binInput
     call ReadString
+    cmp eax, 8
+    jne validateBinary2
     mov binInput[eax], 0
 
     xor eax, eax
@@ -201,12 +210,15 @@ showHex:
     jmp menu
 
 BinaryToBCD:
+validateBinary3:
     call CrLf
     mov edx, OFFSET askBCD
     call WriteString
     mov edx, OFFSET binInput
     mov ecx, SIZEOF binInput
     call ReadString
+    cmp eax, 8
+    jne validateBinary3
     mov binInput[eax], 0
 
     xor eax, eax
