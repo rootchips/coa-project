@@ -30,6 +30,7 @@ isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
+bcdString BYTE 64 DUP(0)
 number DWORD ?
 
 .code
@@ -202,7 +203,7 @@ showHex:
     mov edx, OFFSET isLabel
     call WriteString
     mov eax, number
-    call WriteHex
+    call WriteHexB
     mov edx, OFFSET suffixH
     call WriteString
     call CrLf
@@ -226,7 +227,7 @@ validateBinary3:
 bitLoop3:
     mov bl, [esi]
     cmp bl, 0
-    je showBCD
+    je convertToBCD
     shl eax, 1
     cmp bl, '1'
     jne skipInc3
@@ -234,7 +235,8 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
-showBCD:
+
+convertToBCD:
     mov number, eax
     call CrLf
     mov edx, OFFSET outputLabel4
@@ -245,8 +247,75 @@ showBCD:
     call WriteString
     mov edx, OFFSET isLabel
     call WriteString
+
+    ; Convert to BCD string
+    mov esi, OFFSET bcdString
     mov eax, number
-    call WriteDec
+    mov ecx, 10
+    mov ebx, 100000000
+
+printBCDLoop:
+    cmp ebx, 0
+    je doneBCD
+    mov edx, 0
+    div ebx
+    cmp al, 0
+    jne startWritingBCD
+    cmp esi, OFFSET bcdString
+    jne writeLeadingZero
+    jmp skipDigit
+
+startWritingBCD:
+writeLeadingZero:
+    mov cl, al
+    mov edx, OFFSET resultStr
+    add edx, 4
+    mov BYTE PTR [edx], 0
+    dec edx
+
+    mov ecx, cl
+    mov edi, OFFSET resultStr
+
+    mov eax, ecx
+    and eax, 1
+    add al, '0'
+    mov [edx], al
+    dec edx
+    shr ecx, 1
+
+    mov eax, ecx
+    and eax, 1
+    add al, '0'
+    mov [edx], al
+    dec edx
+    shr ecx, 1
+
+    mov eax, ecx
+    and eax, 1
+    add al, '0'
+    mov [edx], al
+    dec edx
+    shr ecx, 1
+
+    mov eax, ecx
+    and eax, 1
+    add al, '0'
+    mov [edx], al
+
+    mov edx, edx
+    call WriteString
+    mov al, ' '
+    call WriteChar
+
+skipDigit:
+    mov eax, edx
+    mov edx, 0
+    mov ebx, ebx
+    div ebx
+    mov ebx, ebx
+    jmp printBCDLoop
+
+doneBCD:
     call CrLf
     call CrLf
     jmp menu
