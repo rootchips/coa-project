@@ -82,7 +82,8 @@ BinaryToDecimal:
     mov edx, OFFSET binInput
     mov ecx, SIZEOF binInput
     call ReadString
-    mov binInput[eax], 0
+    mov ebx, eax
+    mov BYTE PTR [edx + ebx], 0
 
     xor eax, eax
     mov esi, OFFSET binInput
@@ -105,8 +106,6 @@ showDecimal:
     mov edx, OFFSET binInput
     call WriteString
     mov edx, OFFSET suffixB
-    call WriteString
-    mov edx, OFFSET isLabel
     call WriteString
     mov eax, number
     call WriteDec
