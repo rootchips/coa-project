@@ -28,7 +28,7 @@ suffixB BYTE "b", 0
 suffixH BYTE "h", 0
 isLabel BYTE " is ", 0
 
-binInput BYTE 9 DUP(0)
+binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
 number DWORD ?
 
@@ -80,7 +80,7 @@ BinaryToDecimal:
     mov edx, OFFSET askBinary
     call WriteString
     mov edx, OFFSET binInput
-    mov ecx, 9
+    mov ecx, SIZEOF binInput
     call ReadString
     mov binInput[eax], 0
 
@@ -162,7 +162,7 @@ BinaryToHex:
     mov edx, OFFSET askHex
     call WriteString
     mov edx, OFFSET binInput
-    mov ecx, 9
+    mov ecx, SIZEOF binInput
     call ReadString
     mov binInput[eax], 0
 
@@ -203,7 +203,7 @@ BinaryToBCD:
     mov edx, OFFSET askBCD
     call WriteString
     mov edx, OFFSET binInput
-    mov ecx, 9
+    mov ecx, SIZEOF binInput
     call ReadString
     mov binInput[eax], 0
 
