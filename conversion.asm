@@ -28,7 +28,6 @@ suffixB BYTE "b", 0
 suffixH BYTE "h", 0
 suffixBCD BYTE "bcd", 0
 isLabel BYTE " is ", 0
-space BYTE " ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
@@ -229,7 +228,7 @@ validateBinary3:
 bitLoop3:
     mov bl, [esi]
     cmp bl, 0
-    je bcdConvert
+    je showBCD
     shl eax, 1
     cmp bl, '1'
     jne skipInc3
@@ -237,51 +236,63 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
-
-bcdConvert:
+showBCD:
     mov number, eax
     mov ecx, number
     mov edi, OFFSET bcdStr
+    mov esi, OFFSET bcdStr
+
+    ; Convert number to BCD digits
+    bcdConvert:
+        mov eax, ecx
+        xor edx, edx
+        mov ebx, 10
+        div ebx
+        add dl, '0'
+        mov [edi], dl
+        inc edi
+        mov ecx, eax
+        cmp ecx, 0
+        jne bcdConvert
+
+    ; Print labels
+    call CrLf
+    mov edx, OFFSET outputLabel4
+    call WriteString
+    mov edx, OFFSET binInput
+    call WriteString
+    mov edx, OFFSET suffixB
+    call WriteString
+    mov edx, OFFSET isLabel
+    call WriteString
+
+    ; Print each BCD digit in binary
+    dec edi
+printEachBCD:
+    movzx eax, byte ptr [edi]
+    sub eax, '0'
+    mov ebx, eax
+    mov ecx, 4
     mov esi, OFFSET resultStr
-
-    ; Convert each digit to binary
-convertLoop:
-    xor eax, eax
-    xor edx, edx
-    mov eax, ecx
-    mov ebx, 10
-    div ebx
-    add dl, '0'
-    push dx
-    mov ecx, eax
-    cmp ecx, 0
-    jne convertLoop
-
-    ; Extract digits and convert to binary
-printLoop:
-    pop dx
-    mov al, dl
-    sub al, '0'
-    mov cl, 4
-    mov esi, OFFSET resultStr + 12
+    add esi, 4
     mov BYTE PTR [esi], 0
     dec esi
-digitToBin:
-    mov bl, al
-    and bl, 1
-    add bl, '0'
-    mov [esi], bl
-    shr al, 1
+bcdBinLoop:
+    mov eax, ebx
+    and eax, 1
+    add al, '0'
+    mov [esi], al
     dec esi
-    dec cl
-    jnz digitToBin
+    shr ebx, 1
+    loop bcdBinLoop
     inc esi
     mov edx, esi
     call WriteString
-    mov edx, OFFSET space
-    call WriteString
-    cmp esp, OFFSET bcdStr
-    ja printLoop
+    mov al, ' '
+    call WriteChar
+    dec edi
+    cmp edi, OFFSET bcdStr
+    jae printEachBCD
 
     mov edx, OFFSET suffixBCD
     call WriteString
