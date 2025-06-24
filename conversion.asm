@@ -20,17 +20,14 @@ askBCD BYTE "Please Enter 8-bit binary digits for BCD conversion: ", 0
 byeMsg BYTE "Bye.", 0
 
 outputLabel1 BYTE "The decimal integer of ", 0
-outputLabel2 BYTE "The binary of ", 0
-outputLabel3 BYTE "The hexadecimal of ", 0
 outputLabel4 BYTE "The BCD of ", 0
 suffixD BYTE "d", 0
 suffixB BYTE "b", 0
-suffixH BYTE "h", 0
+suffixBCD BYTE "bcd", 0
 isLabel BYTE " is ", 0
 
 binInput BYTE 16 DUP(0)
-resultStr BYTE 16 DUP(0)
-bcdString BYTE 64 DUP(0)
+bcdResult BYTE 64 DUP(0)
 number DWORD ?
 
 .code
@@ -66,10 +63,6 @@ menu:
 
     cmp ecx, 1
     je BinaryToDecimal
-    cmp ecx, 2
-    je DecimalToBinary
-    cmp ecx, 3
-    je BinaryToHex
     cmp ecx, 4
     je BinaryToBCD
     cmp ecx, 5
@@ -82,7 +75,6 @@ validateBinary1:
     mov edx, OFFSET askBinary
     call WriteString
     mov edx, OFFSET binInput
-    mov ecx, SIZEOF binInput
     call ReadString
     cmp eax, 8
     jne validateBinary1
@@ -120,103 +112,12 @@ showDecimal:
     call CrLf
     jmp menu
 
-DecimalToBinary:
-validateDecimal:
-    call CrLf
-    mov edx, OFFSET askDecimal
-    call WriteString
-    call ReadInt
-    cmp eax, 0
-    jl validateDecimal
-    cmp eax, 255
-    jg validateDecimal
-    mov number, eax
-    mov ecx, eax
-
-    mov edi, OFFSET resultStr
-    add edi, 8
-    mov BYTE PTR [edi], 0
-    dec edi
-
-binaryLoop:
-    mov eax, ecx
-    and eax, 1
-    add al, '0'
-    mov [edi], al
-    dec edi
-    shr ecx, 1
-    cmp ecx, 0
-    jne binaryLoop
-    inc edi
-
-    call CrLf
-    mov edx, OFFSET outputLabel2
-    call WriteString
-    mov eax, number
-    call WriteDec
-    mov edx, OFFSET suffixD
-    call WriteString
-    mov edx, OFFSET isLabel
-    call WriteString
-    mov edx, edi
-    call WriteString
-    mov edx, OFFSET suffixB
-    call WriteString
-    call CrLf
-    call CrLf
-    jmp menu
-
-BinaryToHex:
-validateBinary2:
-    call CrLf
-    mov edx, OFFSET askHex
-    call WriteString
-    mov edx, OFFSET binInput
-    mov ecx, SIZEOF binInput
-    call ReadString
-    cmp eax, 8
-    jne validateBinary2
-    mov binInput[eax], 0
-
-    xor eax, eax
-    mov esi, OFFSET binInput
-bitLoop2:
-    mov bl, [esi]
-    cmp bl, 0
-    je showHex
-    shl eax, 1
-    cmp bl, '1'
-    jne skipInc2
-    inc eax
-skipInc2:
-    inc esi
-    jmp bitLoop2
-showHex:
-    mov number, eax
-    call CrLf
-    mov edx, OFFSET outputLabel3
-    call WriteString
-    mov edx, OFFSET binInput
-    call WriteString
-    mov edx, OFFSET suffixB
-    call WriteString
-    mov edx, OFFSET isLabel
-    call WriteString
-    mov eax, number
-    call WriteHexB
-    mov edx, OFFSET suffixH
-    call WriteString
-    call CrLf
-    call CrLf
-    jmp menu
-
 BinaryToBCD:
 validateBinary3:
     call CrLf
     mov edx, OFFSET askBCD
     call WriteString
     mov edx, OFFSET binInput
-    mov ecx, SIZEOF binInput
     call ReadString
     cmp eax, 8
     jne validateBinary3
@@ -248,77 +149,61 @@ convertToBCD:
     mov edx, OFFSET isLabel
     call WriteString
 
-    ; Convert to BCD string
-    mov esi, OFFSET bcdString
+    ; Now print each decimal digit as 4-bit BCD
     mov eax, number
-    mov ecx, 10
-    mov ebx, 100000000
+    mov ecx, 100        ; divisor
+    mov esi, OFFSET bcdResult
 
-printBCDLoop:
-    cmp ebx, 0
+printBCDGroup:
+    cmp ecx, 0
     je doneBCD
-    mov edx, 0
-    div ebx
-    cmp al, 0
-    jne startWritingBCD
-    cmp esi, OFFSET bcdString
-    jne writeLeadingZero
-    jmp skipDigit
-
-startWritingBCD:
-writeLeadingZero:
-    mov cl, al
-    mov edx, OFFSET resultStr
-    add edx, 4
-    mov BYTE PTR [edx], 0
-    dec edx
-
-    mov ecx, cl
-    mov edi, OFFSET resultStr
-
-    mov eax, ecx
-    and eax, 1
+    xor edx, edx
+    div ecx            ; divide eax by ecx
     add al, '0'
-    mov [edx], al
-    dec edx
-    shr ecx, 1
-
-    mov eax, ecx
-    and eax, 1
-    add al, '0'
-    mov [edx], al
-    dec edx
-    shr ecx, 1
-
-    mov eax, ecx
-    and eax, 1
-    add al, '0'
-    mov [edx], al
-    dec edx
-    shr ecx, 1
-
-    mov eax, ecx
-    and eax, 1
-    add al, '0'
-    mov [edx], al
-
-    mov edx, edx
-    call WriteString
-    mov al, ' '
-    call WriteChar
-
-skipDigit:
-    mov eax, edx
-    mov edx, 0
-    mov ebx, ebx
-    div ebx
-    mov ebx, ebx
-    jmp printBCDLoop
+    call PrintDigitAsBCD
+    mov eax, edx       ; remainder
+    cmp ecx, 100
+    je mov ecx, 10
+    cmp ecx, 10
+    je mov ecx, 1
+    jmp printBCDGroup
 
 doneBCD:
+    mov edx, OFFSET suffixBCD
+    call WriteString
     call CrLf
     call CrLf
     jmp menu
+
+PrintDigitAsBCD PROC
+    ; AL contains digit char '0' to '9'
+    sub al, '0'         ; convert to actual digit 0-9
+    mov bl, al
+    mov ecx, 4
+    mov esi, OFFSET bcdResult
+
+    ; prepare 4-bit string from MSB to LSB
+    push eax
+    mov edi, 0
+print4:
+    shl bl, 1
+    jc oneBit
+    mov BYTE PTR [esi + edi], '0'
+    jmp nextBit
+oneBit:
+    mov BYTE PTR [esi + edi], '1'
+nextBit:
+    inc edi
+    loop print4
+    mov BYTE PTR [esi + edi], ' '  ; space
+    inc edi
+    mov BYTE PTR [esi + edi], 0
+    pop eax
+
+    mov edx, OFFSET bcdResult
+    call WriteString
+    ret
+PrintDigitAsBCD ENDP
 
 ExitProgram:
     call CrLf
