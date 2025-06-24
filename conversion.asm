@@ -28,10 +28,11 @@ suffixB BYTE "b", 0
 suffixH BYTE "h", 0
 suffixBCD BYTE "bcd", 0
 isLabel BYTE " is ", 0
+space BYTE " ", 0
 
 binInput BYTE 16 DUP(0)
 resultStr BYTE 16 DUP(0)
-bcdStr BYTE 16 DUP(0)
+bcdStr BYTE 64 DUP(0)
 number DWORD ?
 
 .code
@@ -228,7 +229,7 @@ validateBinary3:
 bitLoop3:
     mov bl, [esi]
     cmp bl, 0
-    je showBCD
+    je bcdConvert
     shl eax, 1
     cmp bl, '1'
     jne skipInc3
@@ -236,35 +237,52 @@ bitLoop3:
 skipInc3:
     inc esi
     jmp bitLoop3
-showBCD:
+
+bcdConvert:
     mov number, eax
     mov ecx, number
     mov edi, OFFSET bcdStr
+    mov esi, OFFSET resultStr
 
-bcdLoop:
-    mov eax, ecx
+    ; Convert each digit to binary
+convertLoop:
+    xor eax, eax
     xor edx, edx
+    mov eax, ecx
     mov ebx, 10
     div ebx
     add dl, '0'
-    dec edi
-    mov [edi], dl
+    push dx
     mov ecx, eax
     cmp ecx, 0
-    jne bcdLoop
-    inc edi
+    jne convertLoop
 
-    call CrLf
-    mov edx, OFFSET outputLabel4
+    ; Extract digits and convert to binary
+printLoop:
+    pop dx
+    mov al, dl
+    sub al, '0'
+    mov cl, 4
+    mov esi, OFFSET resultStr + 12
+    mov BYTE PTR [esi], 0
+    dec esi
+digitToBin:
+    mov bl, al
+    and bl, 1
+    add bl, '0'
+    mov [esi], bl
+    shr al, 1
+    dec esi
+    dec cl
+    jnz digitToBin
+    inc esi
+    mov edx, esi
     call WriteString
-    mov edx, OFFSET binInput
+    mov edx, OFFSET space
     call WriteString
-    mov edx, OFFSET suffixB
-    call WriteString
-    mov edx, OFFSET isLabel
-    call WriteString
-    mov edx, edi
-    call WriteString
+    cmp esp, OFFSET bcdStr
+    ja printLoop
+
     mov edx, OFFSET suffixBCD
     call WriteString
     call CrLf
